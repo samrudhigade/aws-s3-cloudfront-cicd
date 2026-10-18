@@ -1,0 +1,57 @@
+
+name: Deploy Static Website to AWS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "website/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: portfolio-website-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy website
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials using OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: GitHubPortfolioDeployment
+
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Validate website files
+        run: |
+          test -f website/index.html
+          test -f website/style.css
+          test -f website/script.js
+          echo "Website files validated successfully."
+
+      - name: Deploy website to private S3 bucket
+        run: |
+          aws s3 sync website/ \
+            "s3://${{ vars.S3_BUCKET_NAME }}/" \
+            --delete
+
+      - name: Invalidate CloudFront cache
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id "${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*"
