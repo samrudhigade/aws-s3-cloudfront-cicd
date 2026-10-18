@@ -39,16 +39,18 @@ jobs:
 
       - name: Validate website files
         run: |
-          test -f website/index.html
-          test -f website/style.css
-          test -f website/script.js
+          test -f index.html
+          test -f style.css
+          test -f script.js
           echo "Website files validated successfully."
 
       - name: Deploy website to private S3 bucket
         run: |
-          aws s3 sync website/ \
+          aws s3 sync \
             "s3://${{ vars.S3_BUCKET_NAME }}/" \
             --delete
+            --exclude ".git/*" \
+            --exclude ".github/*"
 
       - name: Invalidate CloudFront cache
         run: |
