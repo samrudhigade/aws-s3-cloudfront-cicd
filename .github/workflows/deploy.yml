@@ -46,11 +46,7 @@ jobs:
 
       - name: Deploy website to private S3 bucket
         run: |
-          aws s3 sync \
-            "s3://${{ vars.S3_BUCKET_NAME }}/" \
-            --delete
-            --exclude ".git/*" \
-            --exclude ".github/*"
+          aws s3 sync . "s3://YOUR-BUCKET-NAME/" --delete --exclude ".git/*" --exclude ".github/*"
 
       - name: Invalidate CloudFront cache
         run: |
