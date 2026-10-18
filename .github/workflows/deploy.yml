@@ -6,7 +6,9 @@ on:
     branches:
       - main
     paths:
-      - "website/**"
+      - "index.html"
+      - "style.css"
+      - "script.js"
       - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
